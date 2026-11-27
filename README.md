@@ -1,1 +1,1 @@
-# StudyHive
+# StudyHive: Collaraborative Networked Study Space
