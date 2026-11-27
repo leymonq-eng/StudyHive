@@ -1,6 +1,6 @@
 StudyHive: Collaborative Networked Study Space
 Table of Contents
-1. Header & Metadata
+1.## Header & Metadata
 2. Team Members & GitHub Accounts
 3. Project Overview, Problem & Theme
 4. Architecture & Message Protocol
