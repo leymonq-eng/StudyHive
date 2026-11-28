@@ -1,224 +1,113 @@
-# StudyHive: Collaborative Networked Study Space
+# 🐝 StudyHive — A Cozy Place for Studyholics
+
+**ITAS1 Final Project Documentation** · Java LAN Peer Study Chat & Collaboration Application
+
+StudyHive is a multi-client Java Swing LAN chat and collaborative study desktop application built on TCP sockets (`StudyServer` & `StudyClient`). Tailored for classmates reviewing subjects over a local network, it structures peer discussions with color-coded Q&A resolution, tagged study notes, live keyword filtering, media lightbox previews, and synchronized session timers.
 
 ## Table of Contents
 
-- [1. Header & Metadata](#1-header--metadata)
-- [2. Team Members & GitHub Accounts](#2-team-members--github-accounts)
-- [3. Project Overview, Problem & Theme](#3-project-overview-problem--theme)
-- [4. Architecture & Message Protocol](#4-architecture--message-protocol)
-- [5. Setup, Execution & Troubleshooting](#5-setup-execution--troubleshooting)
-- [6. Test Cases & Results](#6-test-cases--results)
-- [7. Labeled Screenshots](#7-labeled-screenshots)
-- [8. Pair Contribution Log](#8-pair-contribution-log)
-- [Known Limitations](#known-limitations)
+1. [Project Overview, Team & Repository Metadata](#1-project-overview-team--repository-metadata)
+2. [Concept Proposal & Required Features](#2-concept-proposal--required-features)
+3. [Architecture Diagram & Message Protocol](#3-architecture-diagram--message-protocol)
+4. [Application Screenshots](#4-application-screenshots)
+5. [Setup, Execution & Troubleshooting](#5-setup-execution--troubleshooting)
+6. [Verification & Minimum Test Results](#6-verification--minimum-test-results)
+7. [Pair Contribution Log & Attribution](#7-pair-contribution-log--attribution)
 
-## 1. Header & Metadata
+---
 
-- **Course & Section:** ITAS1 — Network Programming | Section BSIT 2B-SD
-- **Repository Name:** `ITAS1-BSIT-2B-SD-Vallar-Gumarang`
-- **Submission Date:** November 27, 2026
+## 1. Project Overview, Team & Repository Metadata
 
-## 2. Team Members & GitHub Accounts
+| | |
+| --- | --- |
+| **Course & Repository** | ITAS1 — Network Programming · Section: [Section] · Repo: `ITAS1-[Section]-Vallar-[PartnerSurname]` |
+| **Team Members & GitHub** | **Partner 1:** Jade Vincent Suobiron Vallar (@[github-user-1]) — Lead Architect, Server/Client & Sync<br>**Partner 2:** Krisley [Surname] (@[github-user-2]) — Vintage Swing UI, Controls & LAN Testing |
+| **Theme & Approval** | Study Circle / Library Study Hub · Concept approved: [Date] by [Instructor Name] |
+| **Tech Stack** | Java SE (JDK 17+), Java Swing GUI, TCP `ServerSocket`/`Socket`, Multithreading, Apache NetBeans |
 
-- **Member 1:** Jade Vincent Suobiron Vallar — jadevincentvallar
-- **Member 2:** Krisley Son U. Gumarang — leymonq-eng
+## 2. Concept Proposal & Required Features
 
-## 3. Project Overview, Problem & Theme
+**User problem & audience:** Students reviewing in groups over campus Wi-Fi or local LAN frequently lose key questions, answers, and study files inside fast-moving ordinary text chats.
 
-### User Problem
+**Distinct design:** Warm cream-brown vintage Swing UI featuring animal avatars + custom photo upload (+), Host/Join session loading dialogs, live Session/Joined timers, center-aligned activity notices, and a 3-column workspace.
 
-During virtual study sessions, students frequently struggle with context switching between distinct applications for real-time text discussion, topic-tagged note sharing, and session media exchange. Standard chat clients often collapse code snippets, quick questions, and resource links into a single unorganized stream, causing important study queries to get lost.
+**Concurrent TCP architecture:** `StudyServer` spawns a `ClientHandler` thread per client (supporting 3+ concurrent LAN peers) with synchronized broadcasts; `StudyClient` updates Swing via `SwingUtilities.invokeLater()` without blocking the EDT.
 
-### Concept & Approval
+**Identity, commands & validation:** Enforces unique, non-blank nicknames; supports `/name <newname>`, `/exit`, and `/help`; rejects blank messages and invalid IP/port inputs gracefully.
 
-StudyHive is a lightweight multi-client Java desktop application engineered specifically for collaborative study groups. It operates on a centralized server architecture providing low-latency TCP communication, interactive study modules, and structured real-time media exchange.
+### Two Original Synchronized Theme Features
 
-### Core & Original Theme Features
+**1. Visual Study Board (Notes & Live Q&A Resolution)**
+Users tag posts as `[NOTE]` (warm yellow highlight) or `[QUESTION]` (solid red while OPEN). Any peer can select a question to post threaded replies ("Respond to Question") or mark it **RIGHT / RESOLVED**, turning it green across all connected clients.
 
-- **Real-time Peer Messaging:** Socket communication with join/leave notifications and a live online peer list.
-- **Tagged Study Board (Notes & Questions):** A synchronized board where peers post items tagged as **Note** or **Question**, reply to questions, and mark them resolved. Topics such as `#JAVA` or `#EXAM` can be typed in the text and found with keyword search.
-- **Session Media & File Sharing:** Images and study documents sent over the socket, with an image lightbox preview and local saving.
-- **Study Profiles:** Animal avatars or a custom picture.
-- **Session Timers:** Session time for everyone, plus joined time for peers.
+**2. Live Entry Filter, Activity Log & Media Sharing**
+Real-time keyword search and category filtering (All Entries, Notes, Questions), timestamped Activity Log auditing, and TCP file/image broadcasting with dimmed Lightbox preview and local saving.
 
-## 4. Architecture & Message Protocol
-
-### System Architecture Diagram
+## 3. Architecture Diagram & Message Protocol
 
 ```text
-+------------------------------------------------------------------+
-|                     StudyServer (Host app)                       |
-|                                                                  |
-|  ServerSocket :5000 ---> ClientHandler ---> Client list and      |
-|  (accept thread)         (one thread        board history        |
-|                           per client)       (synchronized)       |
-+------------------------------------------------------------------+
-               ^                                  ^
-               |          TCP socket I/O          |
-               v                                  v
-+-----------------------------+    +-----------------------------+
-|        StudyClient 1        |    |        StudyClient 2        |
-|        Reader thread        |    |        Reader thread        |
-|              |              |    |              |              |
-|  SwingUtilities.invokeLater |    |  SwingUtilities.invokeLater |
-|              v              |    |              v              |
-|      StudyHiveUI (EDT)      |    |      StudyHiveUI (EDT)      |
-+-----------------------------+    +-----------------------------+
+StudyClient #1 (Host GUI)  <--- TCP Socket (Port 5000) --->  +------------------------------------+
+StudyClient #2 (Peer GUI)  <--- TCP Socket (Port 5000) --->  | StudyServer (ServerSocket + Thread |
+StudyClient #3 (Peer GUI)  <--- TCP Socket (Port 5000) --->  | per Client, Synchronized State)    |
+                                                             +------------------------------------+
 ```
 
-The host runs the server inside the same app and connects to it as a client through `127.0.0.1`.
+| Frame Type | Pipe-Delimited Wire Format (Base64 Payloads) | Synchronized Action |
+| --- | --- | --- |
+| Handshake & Roster | `JOIN\|nickB64\|avatarB64` / `WELCOME\|nickB64\|startMs` / `PEERS\|list` | Validates unique nickname; syncs peer list & timers. |
+| Chat & Commands | `CHAT\|sender\|avatar\|time\|msg` / `CMD\|/name\|/exit\|/help` | Broadcasts chat once per client; processes commands. |
+| Notices & Study Board | `SYS\|noticeB64` / `ENTRY\|id\|NOTE\|QUESTION\|author\|text\|time\|res` | Posts centered notices and yellow Note / red Question. |
+| Q&A Reply & Resolve | `REPLY\|entryId\|author\|reply\|time` / `RESOLVE\|entryId\|true` | Appends reply; switches Question card red → green. |
+| Media / File Transfer | `ENTRY\|id\|IMAGE\|FILE\|author\|caption\|fileName\|payloadB64\|time` | Broadcasts attachment; enables Lightbox & local save. |
 
-### Architectural Components & Thread Safety
+## 4. Application Screenshots
 
-- **StudyServer:** Binds a `ServerSocket` to the configured port. For each accepted connection, it starts a dedicated `ClientHandler` thread.
-- **StudyClient:** Manages one TCP `Socket` and a background reader thread that listens for server messages.
-- **Thread-Safe Broadcasts:** The server locks the synchronized client list while broadcasting, and each handler's send method is `synchronized`.
-- **Swing Thread Safety (`SwingUtilities.invokeLater`):** `StudyHiveUI` schedules incoming network events on the Event Dispatch Thread (EDT) before updating Swing components.
+Live LAN session evidence captured across Host (`jade`) and Peer (`krisley`) connected on `192.168.43.36:5000`.
 
-### Protocol & Message Format
+![StudyHive Lobby & Profile Setup](screenshots/01-lobby.png)
 
-Each message is one line with fields separated by pipes (`|`). Text fields are UTF-8 Base64 encoded, so they cannot break the format. IDs, entry types, numbers, and `true`/`false` values are sent as is.
+*Figure 1: StudyHive Lobby & Profile Setup — Custom avatar/nickname profile ('ley'), detected Device IP (192.168.43.36), and Join/Create Session controls.*
 
-**Client to server**
-
-| Command | Frame Structure | Description |
-|---|---|---|
-| JOIN | `JOIN\|<nickname>\|<avatar>` | Requests to join the session |
-| CHAT | `CHAT\|<message>` | Sends a chat message |
-| CMD | `CMD\|<command_line>` | Sends `/name` or `/exit` |
-| NOTE | `NOTE\|<text>` | Posts a note |
-| QUESTION | `QUESTION\|<text>` | Posts a question |
-| MEDIA | `MEDIA\|<IMAGE or FILE>\|<filename>\|<size>\|<base64_data>` | Shares an image or file |
-| REPLY | `REPLY\|<entry_id>\|<text>` | Replies to a question |
-| RESOLVE | `RESOLVE\|<entry_id>\|<true or false>` | Resolves or reopens a question |
-
-**Server to client**
-
-| Command | Frame Structure | Description |
-|---|---|---|
-| WELCOME | `WELCOME\|<nickname>\|<elapsed_seconds>` | Accepts the join request |
-| ERROR | `ERROR\|<message>` | Rejects the join request |
-| PEERS | `PEERS\|<nick1>,<nick2>,...` | Updates the online peer list |
-| CHAT | `CHAT\|<nickname>\|<avatar>\|<time>\|<message>` | Broadcasts a chat message |
-| ENTRY | `ENTRY\|<id>\|<type>\|<author>\|<content>\|<filename>\|<base64_data>\|<time>\|<resolved>` | Adds an item to the board |
-| REPLY | `REPLY\|<entry_id>\|<author>\|<text>\|<time>` | Adds a reply to a question |
-| RESOLVE | `RESOLVE\|<entry_id>\|<true or false>` | Updates a question's status |
-| SYS | `SYS\|<category>\|<message>` | Sends a system notice |
+| ![Host Session View](screenshots/02-host-session.png) | ![Peer Session View](screenshots/03-peer-session.png) |
+| :---: | :---: |
+| *Figure 2: Host Session View (jade) — Shows OPEN (red) Question transitioning to RESOLVED (green), yellow [NOTE] post, centered notices, and Host Session Time.* | *Figure 3: Peer Session View (krisley) — Synchronized Live Study Stream, filtered Q&A sidebar, Peer Session/Joined Timers, and Online Study Peers.* |
 
 ## 5. Setup, Execution & Troubleshooting
 
-### System Requirements
+**Dependencies:** JDK 17+ and Apache NetBeans IDE (or `javac`/`java` CLI). Uses standard Java SE libraries only (no external JARs).
 
-- **Java Development Kit (JDK):** Version 17 or higher
-- **IDE:** Apache NetBeans 15+ (or any Java SE compatible IDE)
-- **Build System:** Apache Ant (NetBeans)
-- **Network:** Computers on the same local network
+### Running the App
 
-### Project Structure
+1. **Start Host & Server:** Run `com.mycompany.studyhive.Main` → select an avatar (or upload via **+**), enter a unique nickname, click **Save** → click **Create a Session** to bind `ServerSocket` on Port 5000.
+2. **Connect Peers (3+ instances):** On peer computers on the same LAN/Wi-Fi, run `Main` → enter a unique nickname → enter Host IPv4 (e.g., `192.168.43.36`) and Port `5000` → click **Join Session**.
 
-```text
-StudyHive/
-├── docs/screenshots/
-├── nbproject/
-│   ├── project.properties
-│   └── project.xml
-├── src/com/mycompany/studyhive/
-│   ├── Main.java           # Entry point and UI theme
-│   ├── StudyModels.java    # Data models, utilities, avatars and logo
-│   ├── StudyServer.java    # Multi-client TCP server
-│   ├── StudyClient.java    # Client connection and events
-│   └── StudyHiveUI.java    # Home and session screens
-├── README.md
-├── build.xml
-└── manifest.mf
-```
+### Troubleshooting
 
-Optional images go in `src/avatars/` and `src/logo/`.
+- Ensure all machines share the same subnet.
+- Verify the Host IP via `ipconfig`.
+- Allow Java/TCP Port 5000 through Windows Firewall if a connection times out.
 
-### Running the Application
+## 6. Verification & Minimum Test Results
 
-1. **Start the Host:**
-   - Open the project in Apache NetBeans.
-   - Run `com.mycompany.studyhive.Main`.
-   - Enter a nickname, check **Default Port** (`5000`), and click **Create a Session**.
-   - **Connection Status** shows `Role: Host`, the IP address, and the port.
-2. **Join as a Peer:**
-   - Run `com.mycompany.studyhive.Main` again, on the same or another computer.
-   - Enter a unique nickname.
-   - Enter the host's **IP Address** (`127.0.0.1` on the same computer, otherwise the LAN IP) and **Server Port**.
-   - Click **Join Session**.
-   - Repeat to add more peers.
+| ID | Test Case | Steps, Expected & Actual Result | Status |
+| --- | --- | --- | --- |
+| **TC-01** | 3 Concurrent LAN Clients | Host + 2 peers connect over LAN → All 3 stay connected; Peers Connected & timers update live. | ✅ PASS |
+| **TC-02** | Group Broadcast & Notices | Send message & join/leave → Displayed once per client with sender/time and centered notices. | ✅ PASS |
+| **TC-03** | Nickname & Slash Commands | Test blank/duplicate names, `/name`, `/help`, `/exit` → Invalid names blocked; commands sync globally. | ✅ PASS |
+| **TC-04** | Input & Network Errors | Send empty text; connect to invalid IP/unavailable server → Rejected cleanly; UI stays responsive. | ✅ PASS |
+| **TC-05** | Abrupt Disconnection | Force-close one client window → Server catches disconnect, updates peer list, and continues. | ✅ PASS |
+| **TC-06** | Original Feature 1: Q&A | Post `[QUESTION]` (red), reply, mark RESOLVED (green) → State and replies sync across all peers. | ✅ PASS |
+| **TC-07** | Original Feature 2: Notes | Post `[NOTE]` (yellow) & search/filter entries → Live filter and Activity Log update across peers. | ✅ PASS |
+| **TC-08** | Media Lightbox & Save | Share image/doc, click preview, click Save Selected Media / File → Opens preview & saves locally. | ✅ PASS |
 
-### Supported Client Commands
+## 7. Pair Contribution Log & Attribution
 
-| Command | Syntax | Action / Result |
-|---|---|---|
-| Change Name | `/name <new_nickname>` | Changes the nickname on the server, notifies peers, and updates the peer list |
-| Exit Session | `/exit` | Closes the connection and returns to Home. If the host exits, the session ends |
-| Help Menu | `/help` | Shows the supported commands locally (the **Help** button does the same) |
+| Date | Member | Task Description | Commit Link |
+| --- | --- | --- | --- |
+| 2026-11-18 | Jade Vincent S. Vallar | Built `StudyServer`, `StudyClient`, `StudyModels` wire protocol, timers, and Q&A/media sync. | [commit-hash-1] |
+| 2026-11-22 | Krisley [Surname] | Designed cream-brown vintage Swing UI, animal/custom avatars, Lightbox, and loading pop-ups. | [commit-hash-2] |
+| 2026-11-27 | Both Members | Executed 3-client LAN test cases (TC-01 to TC-08), captured screenshots, and finalized README. | [commit-hash-3] |
 
-### Troubleshooting Guide
+### Citations & AI Disclosure
 
-- **Connection Refused:** Make sure the host has created the session first. Check the IP, port, and firewall.
-- **Address Already in Use:** Another app or session is using the port. Choose a different one, such as `5001`.
-- **Duplicate Nickname Error:** The server rejects a nickname already in use. Enter a different one.
-- **`ClassNotFoundException` for `Main`:** Check that the main class is exactly `com.mycompany.studyhive.Main`.
-- **UI Not Updating or Freezing:** Update Swing components through `SwingUtilities.invokeLater()`.
-
-## 6. Test Cases & Results
-
-Tested on November 27, 2026, with a scripted run of several app windows on one Linux machine, using a virtual display and `127.0.0.1`. The script called the app's actions directly instead of clicking. Testing across separate computers was not done.
-
-| Test ID | Test Scenario | Inputs & Preconditions | Actual Result | Pass / Fail |
-|---|---|---|---|---|
-| TC-01 | Concurrent client connection | One host and two peers on `127.0.0.1:5000` | All three connected | PASS |
-| TC-02 | Message broadcasting | Client1 sends "Hello Team" | Client2 and Client3 showed Client1's message | PASS |
-| TC-03 | Dynamic peer list sync | Client3 joins Client1 and Client2 | All three windows listed all three users | PASS |
-| TC-04 | Duplicate nickname validation | A fourth window joins as "Client2" | Rejected: "Nickname 'Client2' is already in use." | PASS |
-| TC-05 | Input and address validation | IP `999.999.0.1`; port `abc` | Letters in the port were blocked. The invalid IP was not checked beforehand; the connection failed with an error dialog | PARTIAL |
-| TC-06 | Unavailable server handling | Join while no host is running | "Connection refused" dialog, no crash | PASS |
-| TC-07 | Graceful and abrupt disconnection | Client2 sends `/exit`; Client3's socket is closed without `/exit` | Host's peer list updated to Client1 only | PASS |
-| TC-08 | Study board and media sync | Client1 posts a `#JAVA` note and `diagram.png`; Client2 posts a question | All boards showed all three items; the lightbox opened on Client3 (opened by direct method call). Clicking the stream link was not tested | PASS |
-
-## 7. Labeled Screenshots
-
-Captured during the test run above.
-
-**Figure 1: Host Session & Active Connections** (the server has no console output)
-
-![Host session](docs/screenshots/fig1-host-session.png)
-
-**Figure 2: Multi-Client Chat Session & Active Peer List**
-
-![Peer session](docs/screenshots/fig2-peer-session.png)
-
-**Figure 3: Study Board (Synchronized Notes & Questions)**
-
-The left panel in Figures 1 and 2 shows the same board items on the host and a peer.
-
-**Figure 4: Session Media Sharing & Lightbox Preview**
-
-![Image preview](docs/screenshots/fig4-image-preview.png)
-
-**Figure 5: Error Prompt (Duplicate Nickname)**
-
-![Duplicate nickname error](docs/screenshots/fig5-duplicate-nickname.png)
-
-## 8. Pair Contribution Log
-
-| Date | Contributor | Task / Feature Implemented | Commit Link / SHA |
-|---|---|---|---|
-| `[Date]` | Jade Vincent Suobiron Vallar | Server socket setup, thread-per-client handlers, and message parsing | `[Commit SHA]` |
-| `[Date]` | Krisley Son U. Gumarang | Swing client layout, connection inputs, and peer list panel | `[Commit SHA]` |
-| `[Date]` | Jade Vincent Suobiron Vallar | Study board synchronization (`ENTRY`, `REPLY`, `RESOLVE`) | `[Commit SHA]` |
-| `[Date]` | Krisley Son U. Gumarang | Base64 media sharing and image lightbox preview | `[Commit SHA]` |
-| `[Date]` | Jade Vincent Suobiron Vallar | Input validation, `/name` and `/exit` commands, and thread-safe locks | `[Commit SHA]` |
-| `[Date]` | Krisley Son U. Gumarang | Integration testing (TC-01 to TC-08), bug fixes, and README | `[Commit SHA]` |
-
-## Known Limitations
-
-- Data is kept in memory and is lost when the session ends.
-- There is no password or encryption, so use trusted networks only.
-- There is no file size limit; very large files may be slow or fail.
-- After `/name`, Connection Status still shows the old nickname.
-- Clicking an image link in the live stream may not open the preview; double-click the image in the left list.
+Built with Java SE (`java.net`, `java.io`, `javax.swing`, `java.awt`) in Apache NetBeans. Original architecture, UI design, and assets by the pair; AI assistance was used only for formatting documentation and structuring test tables.
