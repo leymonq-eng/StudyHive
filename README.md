@@ -105,7 +105,7 @@ Live LAN session evidence captured across Host (`jade`) and Peer (`krisley`) con
 | Date | Member | Task Description | Commit Link |
 | --- | --- | --- | --- |
 | 2026-11-18 | Jade Vincent S. Vallar | Built `StudyServer`, `StudyClient`, `StudyModels` wire protocol, timers, and Q&A/media sync. | [commit-hash-1] |
-| 2026-11-22 | Krisley [Surname] | Designed cream-brown vintage Swing UI, animal/custom avatars, Lightbox, and loading pop-ups. | [commit-hash-2] |
+| 2026-11-22 | Krisley Son U. Gumarang| Designed cream-brown vintage Swing UI, animal/custom avatars, Lightbox, and loading pop-ups. | [commit-hash-2] |
 | 2026-11-27 | Both Members | Executed 3-client LAN test cases (TC-01 to TC-08), captured screenshots, and finalized README. | [commit-hash-3] |
 
 ### Citations & AI Disclosure
