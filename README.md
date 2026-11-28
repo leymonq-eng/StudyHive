@@ -20,7 +20,7 @@
 
 ## 2. Team Members & GitHub Accounts
 
-- **Member 1:** Jade Vincent Suobiron Vallar — `[GitHub username]`
+- **Member 1:** Jade Vincent Suobiron Vallar — jadevincentvallar
 - **Member 2:** Krisley Son U. Gumarang — leymonq-eng
 
 ## 3. Project Overview, Problem & Theme
