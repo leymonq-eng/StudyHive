@@ -20,9 +20,9 @@ StudyHive is a multi-client Java Swing LAN chat and collaborative study desktop 
 
 | | |
 | --- | --- |
-| **Course & Repository** | ITAS1 — Network Programming · Section: [Section] · Repo: `ITAS1-[Section]-Vallar-[PartnerSurname]` |
-| **Team Members & GitHub** | **Partner 1:** Jade Vincent Suobiron Vallar (@[github-user-1]) — Lead Architect, Server/Client & Sync<br>**Partner 2:** Krisley [Surname] (@[github-user-2]) — Vintage Swing UI, Controls & LAN Testing |
-| **Theme & Approval** | Study Circle / Library Study Hub · Concept approved: [Date] by [Instructor Name] |
+| **Course & Repository** | ITAS1 — Network Programming · Section: [BSIT 2B-SD] · Repo: `ITAS1-[BSIT 2B-SD]-Vallar-Gumarang` |
+| **Team Members & GitHub** | **Partner 1:** Jade Vincent Suobiron Vallar (jadevincentvallar) — Lead Architect, Server/Client & Sync<br>**Partner 2:** Krisley Son U. Gumarang (leymonq) — Vintage Swing UI, Controls & LAN Testing |
+| **Theme & Approval** | Study Circle / Library Study Hub · Concept approved: [November 27, 2026] by [Instr. Kenth Joshua Espina] |
 | **Tech Stack** | Java SE (JDK 17+), Java Swing GUI, TCP `ServerSocket`/`Socket`, Multithreading, Apache NetBeans |
 
 ## 2. Concept Proposal & Required Features
