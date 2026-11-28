@@ -1,4 +1,4 @@
-# 🐝 StudyHive — A Cozy Place for Studyholics
+StudyHive — A Cozy Place for Studyholics
 
 **ITAS1 Final Project Documentation** · Java LAN Peer Study Chat & Collaboration Application
 
